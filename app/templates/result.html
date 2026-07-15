@@ -1,0 +1,68 @@
+<!doctype html>
+<html><head>
+<meta charset="utf-8">
+<title>CopyrightGuard AI — Result</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head><body>
+<div class="bg-orbs"><span></span><span></span><span></span></div>
+<header class="topbar">
+  <div class="logo">🛡️ <span>Copyright</span>Guard <em>AI</em></div>
+  <nav><a href="/">← New Video</a></nav>
+</header>
+
+<main class="hero">
+  <h1>Analysis <span class="grad">Complete</span></h1>
+
+  <div class="card result-card">
+    <div class="score-wrap">
+      <div class="score-ring" style="--c: {{ job.result.color }}; --p: {{ job.result.score }}">
+        <div class="score-val">
+          <b>{{ job.result.score }}</b><small>/100</small>
+        </div>
+      </div>
+      <div>
+        <div class="badge" style="background: {{ job.result.color }}">{{ job.result.label }} RISK</div>
+        <p class="stat">🎞️ <b>{{ job.result.visual_count }}</b> visual detections</p>
+        <p class="stat">🎵 <b>{{ job.result.audio_count }}</b> audio detections</p>
+      </div>
+    </div>
+
+    <div class="actions">
+      <a class="btn primary" href="/outputs/{{ job.result.sanitized_file }}" download>⬇️ Download Sanitized Video</a>
+      <a class="btn ghost" href="/reports/{{ job.result.report_file }}" target="_blank">📊 Open Full Report</a>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>🎞️ Visual Detections</h3>
+      {% if job.result.visual %}
+      <table><tr><th>Time</th><th>Matched</th><th>Text</th><th>Conf</th></tr>
+      {% for v in job.result.visual %}
+        <tr><td>{{ v.timestamp }}s</td><td><span class="pill">{{ v.match }}</span></td>
+            <td>{{ v.text }}</td><td>{{ (v.confidence*100)|int }}%</td></tr>
+      {% endfor %}
+      </table>
+      {% else %}<p class="empty">🎉 No copyrighted visuals detected.</p>{% endif %}
+    </div>
+    <div class="card">
+      <h3>🎵 Audio Detections</h3>
+      {% if job.result.audio %}
+      <table><tr><th>Range</th><th>Reason</th><th>Conf</th></tr>
+      {% for a in job.result.audio %}
+        <tr><td>{{ a.start }}s → {{ a.end }}s</td><td>{{ a.reason }}</td><td>{{ (a.confidence*100)|int }}%</td></tr>
+      {% endfor %}
+      </table>
+      {% else %}<p class="empty">🎉 No copyrighted audio detected.</p>{% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>▶️ Preview Sanitized Video</h3>
+    <video controls style="width:100%;border-radius:14px;background:#000">
+      <source src="/outputs/{{ job.result.sanitized_file }}" type="video/mp4">
+    </video>
+  </div>
+</main>
+<footer>CopyrightGuard AI • Job {{ jid }}</footer>
+</body></html>

@@ -1,0 +1,9 @@
+﻿venv/
+__pycache__/
+*.pyc
+app/uploads/
+app/outputs/
+app/reports/
+.env
+.vscode/
+*.log

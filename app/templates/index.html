@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CopyrightGuard AI — Upload</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="bg-orbs"><span></span><span></span><span></span></div>
+
+<header class="topbar">
+  <div class="logo">🛡️ <span>Copyright</span>Guard <em>AI</em></div>
+  <nav>
+    <a href="#how">How it works</a>
+    <a href="#feat">Features</a>
+    <a href="https://github.com" target="_blank">GitHub</a>
+  </nav>
+</header>
+
+<main class="hero">
+  <h1>Publish videos <span class="grad">without copyright fear.</span></h1>
+  <p class="sub">AI-powered detection & auto-sanitization of copyrighted audio, logos, brands and on-screen text.
+  100% free, offline, and open-source.</p>
+
+  <div class="card upload-card" id="uploadCard">
+    <div class="drop" id="drop">
+      <div class="ico">🎬</div>
+      <h3>Drop your video here</h3>
+      <p>or click to browse • MP4 / MOV / MKV / AVI • up to 500 MB</p>
+      <input type="file" id="fileInput" accept="video/*" hidden>
+    </div>
+    <div class="chosen" id="chosen" hidden>
+      <div>📁 <b id="fname"></b> <small id="fsize"></small></div>
+      <button class="btn primary" id="goBtn">🚀 Analyze & Sanitize</button>
+    </div>
+
+    <div class="progress" id="progress" hidden>
+      <div class="spinner"></div>
+      <div>
+        <div class="ptitle">Processing…</div>
+        <div class="pmsg" id="pmsg">Starting…</div>
+        <div class="bar"><div id="barFill"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <section id="feat" class="features">
+    <div class="f"><div class="fi">🎞️</div><h4>Frame AI Scan</h4><p>Perceptual hashing + deep-learning OCR spots logos, watermarks & brand text.</p></div>
+    <div class="f"><div class="fi">🎵</div><h4>Audio Fingerprint</h4><p>Librosa-based music detection flags copyrighted-sounding tracks.</p></div>
+    <div class="f"><div class="fi">🧼</div><h4>Auto Sanitize</h4><p>Blurs risky areas, mutes flagged music, re-encodes a clean, platform-safe video.</p></div>
+    <div class="f"><div class="fi">📊</div><h4>Full Report</h4><p>Risk score 0-100 + timestamped violations in a beautiful HTML report.</p></div>
+  </section>
+
+  <section id="how" class="how">
+    <h2>How it works</h2>
+    <div class="steps">
+      <div><span>1</span><p>Upload your video</p></div>
+      <div><span>2</span><p>AI extracts frames + audio</p></div>
+      <div><span>3</span><p>Detects logos, text & music</p></div>
+      <div><span>4</span><p>Sanitizes & downloads clean video</p></div>
+    </div>
+  </section>
+</main>
+
+<footer>Built with ❤️ using Flask · OpenCV · EasyOCR · Librosa · FFmpeg — all free & open-source.</footer>
+
+<script>
+const drop = document.getElementById('drop');
+const fi = document.getElementById('fileInput');
+const chosen = document.getElementById('chosen');
+const fname = document.getElementById('fname');
+const fsize = document.getElementById('fsize');
+const goBtn = document.getElementById('goBtn');
+const progress = document.getElementById('progress');
+const pmsg = document.getElementById('pmsg');
+const barFill = document.getElementById('barFill');
+let currentFile = null;
+
+drop.addEventListener('click', () => fi.click());
+['dragover','dragenter'].forEach(e => drop.addEventListener(e, ev => {ev.preventDefault(); drop.classList.add('hot');}));
+['dragleave','drop'].forEach(e => drop.addEventListener(e, ev => {ev.preventDefault(); drop.classList.remove('hot');}));
+drop.addEventListener('drop', ev => { if(ev.dataTransfer.files[0]) setFile(ev.dataTransfer.files[0]); });
+fi.addEventListener('change', () => { if(fi.files[0]) setFile(fi.files[0]); });
+
+function setFile(f){
+  currentFile = f;
+  fname.textContent = f.name;
+  fsize.textContent = '(' + (f.size/1024/1024).toFixed(1) + ' MB)';
+  chosen.hidden = false;
+}
+
+goBtn.addEventListener('click', async () => {
+  if(!currentFile) return;
+  chosen.hidden = true;
+  progress.hidden = false;
+  const fd = new FormData();
+  fd.append('video', currentFile);
+  const r = await fetch('/upload', {method:'POST', body:fd});
+  const j = await r.json();
+  if(j.error){ alert(j.error); return; }
+  poll(j.job_id);
+});
+
+let pct = 5;
+async function poll(id){
+  const r = await fetch('/status/'+id);
+  const j = await r.json();
+  if(j.progress) pmsg.textContent = j.progress;
+  pct = Math.min(95, pct + 2);
+  barFill.style.width = pct+'%';
+  if(j.status === 'done'){
+    barFill.style.width = '100%';
+    setTimeout(()=> location.href = '/result/'+id, 500);
+  } else if(j.status === 'error'){
+    pmsg.innerHTML = '❌ Error: '+ j.error;
+  } else {
+    setTimeout(()=> poll(id), 1200);
+  }
+}
+</script>
+</body></html>
