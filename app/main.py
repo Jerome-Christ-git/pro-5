@@ -80,5 +80,12 @@ def reports(name):
 
 
 if __name__ == "__main__":
-    print("\n🛡️  CopyrightGuard AI running at http://127.0.0.1:5000\n")
-    app.run(host="127.0.0.1", port=5000, debug=False)
+    port = int(os.environ.get("PORT", 5000))
+
+    print(f"\n🛡️ CopyrightGuard AI running on port {port}\n")
+
+    app.run(
+        host="0.0.0.0",
+        port=port,
+        debug=False
+    )
