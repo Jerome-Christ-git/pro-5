@@ -15,7 +15,7 @@ import imagehash
 import librosa
 import soundfile as sf
 
-from app.brands import COPYRIGHTED_KEYWORDS, LOGO_HINT_WORDS
+from brands import COPYRIGHTED_KEYWORDS, LOGO_HINT_WORDS
 
 # Lazy-load EasyOCR (heavy)
 _reader = None
