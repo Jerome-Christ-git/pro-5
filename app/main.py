@@ -6,7 +6,7 @@ import uuid
 from flask import (Flask, render_template, request, jsonify,
                    send_from_directory, redirect, url_for)
 
-import engine
+from . import engine
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_DIR = os.path.join(BASE, "uploads")
